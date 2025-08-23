@@ -8,45 +8,151 @@
 
 	<link rel="icon" href="favicon.png" />
 	<link rel="stylesheet" href="index.css" />
+
+	<script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" type="module"></script>
 </head>
 
-<body>
-	<main>
-		<h1>PI Radio</h1>
+<body class="text-sm bg-neutral-950 text-slate-50">
+	<main class="flex flex-col">
+		<div
+			class="fixed flex items-center justify-between h-[64px] overflow-hidden gap-2 px-6 top-0 left-0 right-0 bg-neutral-950 border-b border-neutral-800">
+			<div class="flex gap-2 items-center whitespace-nowrap">
+				<img src="favicon.png" width="64" height="32" />
+				<h1 class="font-semibold text-base leading-16">PI Radio</h1>
+			</div>
 
-		<ul id="file-list"></ul>
+			<form id="upload-form" enctype="multipart/form-data">
+				<input type="file" id="file-input" name="files" multiple />
+				<button type="submit">Upload</button>
+			</form>
+		</div>
 
-		<button id="stop-button">Stop</button>
-		<button id="pause-button">Pause</button>
-		<button id="volume-button">Volume</button>
+		<div class="mt-[64px] flex flex-col py-6 sm:px-12">
+			<ul id="file-list" class="flex flex-col"></ul>
 
-		<form id="upload-form" enctype="multipart/form-data">
-			<input type="file" id="file-input" name="files" multiple />
-			<button type="submit">Upload</button>
-		</form>
+			<div
+				class="fixed bottom-0 left-0 right-0 h-[64px] px-4 border-t border-neutral-800 flex gap-2 items-center mx-auto py-2">
+				<button id="pause-button" onclick="togglePause()" data-hidden="true" class=" rounded data-hidden:hidden size-8 flex items-center justify-center border border-neutral-800
+					bg-neutral-950 hover:bg-neutral-800 cursor-pointer">
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+						stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+						class="lucide lucide-pause-icon lucide-pause">
+						<rect x="14" y="3" width="5" height="18" rx="1" />
+						<rect x="5" y="3" width="5" height="18" rx="1" />
+					</svg>
+				</button>
+
+				<button id="unpause-button" onclick="togglePause()"
+					class="rounded data-hidden:hidden size-8 flex items-center justify-center border border-neutral-800 bg-neutral-950 hover:bg-neutral-800 cursor-pointer">
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+						stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+						class="lucide lucide-play-icon lucide-play">
+						<path d="M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z" />
+					</svg>
+				</button>
+
+				<div class="flex items-center gap-2">
+					<button id="volume-minus-button"
+						class="data-hidden:hidden rounded size-8 border flex items-center justify-center border-neutral-800 bg-neutral-950 hover:bg-neutral-800 cursor-pointer">
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+							stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+							class="lucide lucide-minus-icon lucide-minus">
+							<path d="M5 12h14" />
+						</svg>
+					</button>
+					<div id="volume-value">0</div>
+					<button id="volume-plus-button"
+						class="data-hidden:hidden rounded size-8 border flex items-center justify-center border-neutral-800 bg-neutral-950 hover:bg-neutral-800 cursor-pointer">
+						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+							stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+							class="lucide lucide-plus-icon lucide-plus">
+							<path d="M5 12h14" />
+							<path d="M12 5v14" />
+						</svg>
+					</button>
+				</div>
+
+				<button id="stop-button"
+					class="rounded size-8 ml-auto border flex items-center justify-center border-neutral-800 bg-neutral-950 hover:bg-neutral-800 cursor-pointer">
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+						stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+						class="lucide lucide-x-icon lucide-x">
+						<path d="M18 6 6 18" />
+						<path d="m6 6 12 12" />
+					</svg>
+				</button>
+			</div>
+		</div>
 	</main>
 </body>
 
 </html>
 
 <template id="file">
-	<li>
-		<div class="file-name"></div>
+	<li class="flex gap-2 items-center py-1.5 px-6 hover:bg-neutral-900 rounded overflow-hidden">
+		<div class="file-name truncate"></div>
 
-		<div class="file-controls">
-			<button class="file-play-button">Play</button>
-			<button class="file-delete-button">Delete</button>
+		<div class="flex items-center gap-2 ml-auto">
+			<el-dropdown class="text-slate-50">
+				<button type="button" class="cursor-pointer flex items-center justify-center">
+					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+						stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+						class="lucide lucide-ellipsis-vertical-icon lucide-ellipsis-vertical">
+						<circle cx="12" cy="12" r="1" />
+						<circle cx="12" cy="5" r="1" />
+						<circle cx="12" cy="19" r="1" />
+					</svg>
+				</button>
+				<el-menu anchor="bottom start" popover
+					class="[--anchor-gap:4px] transition transition-discrete data-closed:opacity-0 data-enter:duration-75 data-enter:ease-out data-leave:duration-100 data-leave:ease-in bg-neutral-950 border border-neutral-800 text-slate-50 rounded p-1">
+					<button class="file-play-button focus:bg-neutral-900 px-4 py-1 rounded cursor-pointer w-full" type="button">
+						Play
+					</button>
+					<hr role="none" class="my-1 text-neutral-800" />
+					<button class="file-delete-button focus:bg-neutral-900 px-4 py-1 rounded cursor-pointer w-full" type="button">
+						Delete
+					</button>
+				</el-menu>
+			</el-dropdown>
 		</div>
 	</li>
 </template>
 
 <script>
+	const radioState = {
+		paused: true,
+		volume: 0,
+	}
+
 	const fileList = document.getElementById("file-list");
 	const fileTemplate = document.getElementById("file");
-	const stopButton = document.getElementById("stop-button");
-	const pauseButton = document.getElementById("pause-button");
-	const volumeButton = document.getElementById("volume-button");
+
 	const uploadForm = document.getElementById("upload-form");
+
+	const volumeMinusButton = document.getElementById("volume-minus-button");
+	const volumePlusButton = document.getElementById("volume-plus-button");
+
+	const stopButton = document.getElementById("stop-button");
+
+	const pauseButton = document.getElementById("pause-button");
+	const unpauseButton = document.getElementById("unpause-button");
+
+	async function togglePause() {
+		radioState.paused = !radioState.paused
+
+		await fetch("/api/radio/pause", {
+			method: "POST",
+			body: JSON.stringify({ paused: radioState.paused }),
+		});
+
+		if (radioState.paused) {
+			pauseButton.setAttribute('data-hidden', true)
+			unpauseButton.removeAttribute('data-hidden')
+		} else {
+			pauseButton.removeAttribute('data-hidden')
+			unpauseButton.setAttribute('data-hidden', true)
+		}
+	}
 
 	fetch("/api/radio/files")
 		.then((response) => response.json())
@@ -85,12 +191,6 @@
 		fetch("/api/radio/stop", { method: "POST" });
 	});
 
-	pauseButton.addEventListener("click", () => {
-		fetch("/api/radio/pause", {
-			method: "POST",
-			body: JSON.stringify({ paused: true }),
-		});
-	});
 
 	volumeButton.addEventListener("click", () => {
 		fetch("/api/radio/volume", {
