@@ -17,6 +17,8 @@ type Radio struct {
 	AudioDir   string
 	AudioFiles []AudioFile
 	Volume     float64
+	Paused     bool
+	StreamFile *AudioFile
 	Streamer   beep.StreamSeekCloser
 	PauseCtrl  *beep.Ctrl
 	VolumeCtrl *effects.Volume
@@ -78,6 +80,7 @@ func (r *Radio) Play(audioFileID string) error {
 
 	r.Streamer = streamer
 
+	// err check here would fail on replay (speaker can only be initialized once)
 	speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
 
 	pauseCtrl := &beep.Ctrl{Streamer: streamer, Paused: false}
@@ -93,6 +96,9 @@ func (r *Radio) Play(audioFileID string) error {
 
 	r.VolumeCtrl = volumeCtrl
 
+	r.Paused = false
+	r.StreamFile = &audioFile
+
 	speaker.Play(volumeCtrl)
 
 	return nil
@@ -105,6 +111,7 @@ func (r *Radio) SetPaused(paused bool) {
 
 	speaker.Lock()
 	r.PauseCtrl.Paused = paused
+	r.Paused = paused
 	speaker.Unlock()
 }
 
@@ -129,6 +136,8 @@ func (r *Radio) Stop() error {
 	r.Streamer = nil
 	r.VolumeCtrl = nil
 	r.PauseCtrl = nil
+	r.StreamFile = nil
+	r.Paused = true
 
 	return nil
 }

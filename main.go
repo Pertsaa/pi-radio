@@ -35,6 +35,8 @@ func main() {
 	r.HandleFunc("GET /index.css", handler.Make(h.CSSHandler))
 	r.HandleFunc("GET /favicon.png", handler.Make(h.FaviconHandler))
 
+	r.HandleFunc("GET /api/radio/status", handler.Make(h.RadioStatusHandler))
+
 	r.HandleFunc("GET /api/radio/files", handler.Make(h.RadioFileListHandler))
 	r.HandleFunc("POST /api/radio/files", handler.Make(h.RadioFileUploadHandler))
 	r.HandleFunc("DELETE /api/radio/files/{fileID}", handler.Make(h.RadioFileDeleteHandler))

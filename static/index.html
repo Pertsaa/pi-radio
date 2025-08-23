@@ -12,7 +12,7 @@
 	<script src="https://cdn.jsdelivr.net/npm/@tailwindplus/elements@1" type="module"></script>
 </head>
 
-<body class="text-sm bg-neutral-950 text-slate-50">
+<body class="text-sm bg-neutral-950 text-slate-50 select-none">
 	<main class="flex flex-col">
 		<div
 			class="fixed flex items-center justify-between h-[64px] overflow-hidden gap-2 px-6 top-0 left-0 right-0 bg-neutral-950 border-b border-neutral-800">
@@ -27,13 +27,13 @@
 			</form>
 		</div>
 
-		<div class="mt-[64px] flex flex-col py-6 sm:px-12">
+		<div class="my-[64px] flex flex-col py-6 sm:px-12">
 			<ul id="file-list" class="flex flex-col"></ul>
 
-			<div
-				class="fixed bottom-0 left-0 right-0 h-[64px] px-4 border-t border-neutral-800 flex gap-2 items-center mx-auto py-2">
-				<button id="pause-button" onclick="togglePause()" data-hidden="true" class=" rounded data-hidden:hidden size-8 flex items-center justify-center border border-neutral-800
-					bg-neutral-950 hover:bg-neutral-800 cursor-pointer">
+			<div id="stream-controls"
+				class="fixed data-hidden:hidden bg-neutral-950 bottom-0 left-0 right-0 h-[64px] px-4 border-t border-neutral-800 flex gap-2 items-center mx-auto py-2">
+				<button id="pause-button" onclick="togglePause()" data-hidden="true"
+					class="rounded data-hidden:hidden size-8 flex items-center justify-center border border-neutral-800 bg-neutral-950 hover:bg-neutral-800 cursor-pointer">
 					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
 						stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
 						class="lucide lucide-pause-icon lucide-pause">
@@ -51,7 +51,9 @@
 					</svg>
 				</button>
 
-				<div class="flex items-center gap-2">
+				<h2 id="stream-file-name"></h2>
+
+				<div class="flex items-center gap-2 ml-auto">
 					<button id="volume-minus-button"
 						class="data-hidden:hidden rounded size-8 border flex items-center justify-center border-neutral-800 bg-neutral-950 hover:bg-neutral-800 cursor-pointer">
 						<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -73,7 +75,7 @@
 				</div>
 
 				<button id="stop-button"
-					class="rounded size-8 ml-auto border flex items-center justify-center border-neutral-800 bg-neutral-950 hover:bg-neutral-800 cursor-pointer">
+					class="rounded size-8 border flex items-center justify-center border-neutral-800 bg-neutral-950 hover:bg-neutral-800 cursor-pointer">
 					<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
 						stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
 						class="lucide lucide-x-icon lucide-x">
@@ -120,9 +122,10 @@
 
 <script>
 	const radioState = {
+		stream_file: null,
 		paused: true,
 		volume: 0,
-	}
+	};
 
 	const fileList = document.getElementById("file-list");
 	const fileTemplate = document.getElementById("file");
@@ -137,8 +140,48 @@
 	const pauseButton = document.getElementById("pause-button");
 	const unpauseButton = document.getElementById("unpause-button");
 
+	const streamFileName = document.getElementById("stream-file-name");
+
+	const streamControls = document.getElementById('stream-controls')
+
+	async function handleStatusUpdate(status) {
+		console.log(status);
+		radioState.stream_file = status.stream_file;
+		radioState.paused = status.paused;
+		radioState.volume = status.volume;
+
+		streamFileName.textContent = status.stream_file?.name ?? "";
+
+		if (status.paused) {
+			pauseButton.setAttribute("data-hidden", true);
+			unpauseButton.removeAttribute("data-hidden");
+		} else {
+			pauseButton.removeAttribute("data-hidden");
+			unpauseButton.setAttribute("data-hidden", true);
+		}
+
+		if (status.stream_file) {
+			streamControls.removeAttribute("data-hidden");
+		} else {
+			streamControls.setAttribute("data-hidden", true);
+		}
+	}
+
+	async function handleStop() {
+		await fetch("/api/radio/stop", { method: "POST" });
+		location.reload();
+	}
+
+	async function handlePlay(audioFileID) {
+		await fetch(`/api/radio/play`, {
+			method: "POST",
+			body: JSON.stringify({ audio_file_id: audioFileID }),
+		});
+		location.reload();
+	}
+
 	async function togglePause() {
-		radioState.paused = !radioState.paused
+		radioState.paused = !radioState.paused;
 
 		await fetch("/api/radio/pause", {
 			method: "POST",
@@ -146,11 +189,11 @@
 		});
 
 		if (radioState.paused) {
-			pauseButton.setAttribute('data-hidden', true)
-			unpauseButton.removeAttribute('data-hidden')
+			pauseButton.setAttribute("data-hidden", true);
+			unpauseButton.removeAttribute("data-hidden");
 		} else {
-			pauseButton.removeAttribute('data-hidden')
-			unpauseButton.setAttribute('data-hidden', true)
+			pauseButton.removeAttribute("data-hidden");
+			unpauseButton.setAttribute("data-hidden", true);
 		}
 	}
 
@@ -164,12 +207,7 @@
 
 				clone
 					.querySelector(".file-play-button")
-					.addEventListener("click", () => {
-						fetch(`/api/radio/play`, {
-							method: "POST",
-							body: JSON.stringify({ audio_file_id: file.id }),
-						});
-					});
+					.addEventListener("click", () => handlePlay(file.id));
 
 				clone
 					.querySelector(".file-delete-button")
@@ -187,17 +225,11 @@
 		})
 		.catch((error) => console.error("Error fetching data:", error));
 
-	stopButton.addEventListener("click", () => {
-		fetch("/api/radio/stop", { method: "POST" });
-	});
+	fetch("/api/radio/status")
+		.then((response) => response.json())
+		.then(handleStatusUpdate);
 
-
-	volumeButton.addEventListener("click", () => {
-		fetch("/api/radio/volume", {
-			method: "POST",
-			body: JSON.stringify({ volume: 0 }),
-		});
-	});
+	stopButton.addEventListener("click", handleStop);
 
 	uploadForm.addEventListener("submit", async (event) => {
 		event.preventDefault();

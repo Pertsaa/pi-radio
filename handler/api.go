@@ -122,3 +122,13 @@ func (h *Handler) RadioStopHandler(w http.ResponseWriter, r *http.Request) error
 
 	return writeJSON(w, http.StatusOK, nil)
 }
+
+type RadioStatus struct {
+	Volume     float64          `json:"volume"`
+	Paused     bool             `json:"paused"`
+	StreamFile *radio.AudioFile `json:"stream_file"`
+}
+
+func (h *Handler) RadioStatusHandler(w http.ResponseWriter, r *http.Request) error {
+	return writeJSON(w, http.StatusOK, RadioStatus{Volume: h.radio.Volume, Paused: h.radio.Paused, StreamFile: h.radio.StreamFile})
+}
