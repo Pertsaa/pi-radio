@@ -34,10 +34,13 @@ button:hover {
 	background-color: #ddd;
 }
 
-.audio-file-id {
-	width: 260px;
+.file-controls {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	margin-left: auto;
 }
 
-li button {
-	margin-left: auto;
+.audio-file-id {
+	width: 260px;
 }
