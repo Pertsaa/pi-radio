@@ -35,11 +35,14 @@ func main() {
 	r.HandleFunc("GET /index.css", handler.Make(h.CSSHandler))
 	r.HandleFunc("GET /favicon.ico", handler.Make(h.FaviconHandler))
 
-	r.HandleFunc("GET /api/radio/files", handler.Make(h.AudioFileListHandler))
-	r.HandleFunc("POST /api/radio/play", handler.Make(h.AudioPlayHandler))
-	r.HandleFunc("POST /api/radio/pause", handler.Make(h.AudioPauseHandler))
-	r.HandleFunc("POST /api/radio/volume", handler.Make(h.AudioVolumeHandler))
-	r.HandleFunc("POST /api/radio/stop", handler.Make(h.AudioStopHandler))
+	r.HandleFunc("GET /api/radio/files", handler.Make(h.RadioFileListHandler))
+	r.HandleFunc("POST /api/radio/files", handler.Make(h.RadioFileUploadHandler))
+	r.HandleFunc("DELETE /api/radio/files/{fileID}", handler.Make(h.RadioFileDeleteHandler))
+
+	r.HandleFunc("POST /api/radio/play", handler.Make(h.RadioPlayHandler))
+	r.HandleFunc("POST /api/radio/pause", handler.Make(h.RadioPauseHandler))
+	r.HandleFunc("POST /api/radio/volume", handler.Make(h.RadioVolumeHandler))
+	r.HandleFunc("POST /api/radio/stop", handler.Make(h.RadioStopHandler))
 
 	r.HandleFunc("/", handler.Make(h.NotFoundHandler))
 
