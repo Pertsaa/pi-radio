@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"net/http"
 )
 
@@ -9,14 +8,17 @@ func (h *Handler) AudioFileListHandler(w http.ResponseWriter, r *http.Request) e
 	return writeJSON(w, http.StatusOK, h.radio.AudioFiles)
 }
 
-func (h *Handler) AudioPlayHandler(w http.ResponseWriter, r *http.Request) error {
-	audioFileID := r.PathValue("audioFileID")
+type AudioPlayBody struct {
+	AudioFileID string `json:"audio_file_id"`
+}
 
-	if audioFileID == "" {
-		return fmt.Errorf("invalid file ID: %s", audioFileID)
+func (h *Handler) AudioPlayHandler(w http.ResponseWriter, r *http.Request) error {
+	body, err := parseBody[AudioPlayBody](r)
+	if err != nil {
+		return NewAPIError(http.StatusBadRequest, err)
 	}
 
-	err := h.radio.Play(audioFileID)
+	err = h.radio.Play(body.AudioFileID)
 	if err != nil {
 		return err
 	}
@@ -24,14 +26,32 @@ func (h *Handler) AudioPlayHandler(w http.ResponseWriter, r *http.Request) error
 	return writeJSON(w, http.StatusOK, nil)
 }
 
+type AudioPauseBody struct {
+	Paused bool `json:"paused"`
+}
+
 func (h *Handler) AudioPauseHandler(w http.ResponseWriter, r *http.Request) error {
-	h.radio.SetPaused(false)
+	body, err := parseBody[AudioPauseBody](r)
+	if err != nil {
+		return NewAPIError(http.StatusBadRequest, err)
+	}
+
+	h.radio.SetPaused(body.Paused)
 
 	return writeJSON(w, http.StatusOK, nil)
 }
 
+type AudioVolumeBody struct {
+	Volume float64 `json:"volume"`
+}
+
 func (h *Handler) AudioVolumeHandler(w http.ResponseWriter, r *http.Request) error {
-	h.radio.SetVolume(0)
+	body, err := parseBody[AudioVolumeBody](r)
+	if err != nil {
+		return NewAPIError(http.StatusBadRequest, err)
+	}
+
+	h.radio.SetVolume(body.Volume)
 
 	return writeJSON(w, http.StatusOK, nil)
 }

@@ -68,3 +68,13 @@ func writeJSON(w http.ResponseWriter, code int, data any) error {
 	w.WriteHeader(code)
 	return json.NewEncoder(w).Encode(data)
 }
+
+func parseBody[T any](r *http.Request) (T, error) {
+	var body T
+	err := json.NewDecoder(r.Body).Decode(&body)
+	if err != nil {
+		return body, err
+	}
+	defer r.Body.Close()
+	return body, nil
+}

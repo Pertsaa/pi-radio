@@ -3,6 +3,7 @@ package radio
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -39,7 +40,9 @@ func (r *Radio) ScanAudioFiles() error {
 	r.AudioFiles = []AudioFile{}
 
 	for _, entry := range entries {
-		r.AudioFiles = append(r.AudioFiles, AudioFile{ID: uuid.New().String(), Name: entry.Name()})
+		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".mp3") {
+			r.AudioFiles = append(r.AudioFiles, AudioFile{ID: uuid.New().String(), Name: entry.Name()})
+		}
 	}
 
 	return nil
