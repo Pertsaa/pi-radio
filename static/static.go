@@ -7,3 +7,6 @@ var IndexCSS []byte
 
 //go:embed index.html
 var IndexHTML []byte
+
+//go:embed favicon.png
+var Favicon []byte

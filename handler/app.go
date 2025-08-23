@@ -20,7 +20,7 @@ func (h *Handler) CSSHandler(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (h *Handler) FaviconHandler(w http.ResponseWriter, r *http.Request) error {
-	w.Header().Set("Content-Type", "text/plain")
-	w.Write([]byte(""))
+	w.Header().Set("Content-Type", "image/png")
+	w.Write(static.Favicon)
 	return nil
 }

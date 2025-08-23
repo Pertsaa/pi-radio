@@ -33,7 +33,7 @@ func main() {
 
 	r.HandleFunc("GET /", handler.Make(h.IndexHandler))
 	r.HandleFunc("GET /index.css", handler.Make(h.CSSHandler))
-	r.HandleFunc("GET /favicon.ico", handler.Make(h.FaviconHandler))
+	r.HandleFunc("GET /favicon.png", handler.Make(h.FaviconHandler))
 
 	r.HandleFunc("GET /api/radio/files", handler.Make(h.RadioFileListHandler))
 	r.HandleFunc("POST /api/radio/files", handler.Make(h.RadioFileUploadHandler))
