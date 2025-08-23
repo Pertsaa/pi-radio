@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>PI Radio</title>
+
+	<link rel="stylesheet" href="index.css" />
+</head>
+
+<body>
+	<main>
+		<h1>PI Radio</h1>
+
+		<ul id="audio-file-list"></ul>
+
+		<button id="stop-button">Stop</button>
+		<button id="pause-button">Pause</button>
+		<button id="volume-button">Volume</button>
+	</main>
+</body>
+
+</html>
+
+<template id="audio-file">
+	<li>
+		<div class="audio-file-name"></div>
+		<button class="audio-file-play-button">Play</button>
+	</li>
+</template>
+
+<script>
+	const audioFileList = document.getElementById('audio-file-list');
+	const audioFileTemplate = document.getElementById('audio-file');
+	const stopButton = document.getElementById('stop-button')
+	const pauseButton = document.getElementById('pause-button')
+	const volumeButton = document.getElementById('volume-button')
+
+
+
+	fetch('/api/audio_files')
+		.then(response => response.json())
+		.then(data => {
+			data.forEach(file => {
+				const clone = audioFileTemplate.content.cloneNode(true);
+
+				clone.querySelector('.audio-file-name').textContent = file.name;
+
+				clone.querySelector('.audio-file-play-button').addEventListener('click', () => {
+					fetch(`/api/audio_files/${file.id}/play`, { method: 'POST' })
+				})
+
+				audioFileList.appendChild(clone);
+			});
+		})
+		.catch(error => console.error('Error fetching data:', error))
+
+	stopButton.addEventListener('click', () => {
+		fetch('/api/audio/stop', { method: 'POST' })
+	})
+
+	pauseButton.addEventListener('click', () => {
+		fetch('/api/audio/pause', { method: 'POST' })
+	})
+
+	volumeButton.addEventListener('click', () => {
+		fetch('/api/audio/volume', { method: 'POST' })
+	})
+
+</script>

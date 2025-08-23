@@ -1,74 +1,60 @@
 package main
 
 import (
+	"context"
 	"fmt"
+	"net/http"
 	"os"
-	"os/exec"
-	"syscall"
-	"time"
+
+	"github.com/Pertsaa/pi-radio/handler"
+	"github.com/Pertsaa/pi-radio/middleware"
+	"github.com/Pertsaa/pi-radio/radio"
 )
 
-type Player struct {
-	cmd *exec.Cmd
-}
-
-// NewPlayer creates a new player instance.
-func NewPlayer() *Player {
-	return &Player{}
-}
-
-// Play a given MP3 file with a specified volume.
-// Volume is a percentage from 0 to 100.
-func (p *Player) Play(filePath string, volume int) error {
-	// Map volume percentage to mpg123's scale (0-32768).
-	scale := int(float64(volume) / 100.0 * 32768)
-	if scale < 0 {
-		scale = 0
-	} else if scale > 32768 {
-		scale = 32768
-	}
-
-	// Use -q for quiet output and -f for volume scaling.
-	p.cmd = exec.Command("mpg123", "-f", fmt.Sprint(scale), "-q", filePath)
-	return p.cmd.Start()
-}
-
-// Stop the current playback.
-func (p *Player) Stop() error {
-	if p.cmd == nil || p.cmd.Process == nil {
-		return nil
-	}
-	// Use SIGTERM to gracefully terminate the process.
-	return p.cmd.Process.Signal(syscall.SIGTERM)
-}
-
 func main() {
-	// Check if a file path argument is provided.
 	if len(os.Args) < 2 {
-		fmt.Println("Usage: go run your_program.go <path_to_mp3_file>")
+		fmt.Println("usage: ./pi-radio <audio_dir>")
 		os.Exit(1)
 	}
 
-	// The first argument (os.Args[1]) is the file path.
-	mp3File := os.Args[1]
+	audioDir := os.Args[1]
 
-	player := NewPlayer()
-
-	// Play at 75% volume.
-	fmt.Println("Playing audio at 75% volume...")
-	err := player.Play(mp3File, 75)
+	radio := radio.New(audioDir)
+	err := radio.ScanAudioFiles()
 	if err != nil {
-		fmt.Println("Error playing file:", err)
-		return
+		os.Exit(1)
 	}
 
-	// Wait for a few seconds.
-	time.Sleep(5 * time.Second)
+	ctx := context.Background()
 
-	// Stop playback.
-	fmt.Println("Stopping playback.")
-	err = player.Stop()
-	if err != nil {
-		fmt.Println("Error stopping playback:", err)
+	r := http.NewServeMux()
+
+	h := handler.NewHandler(ctx, radio)
+
+	r.HandleFunc("GET /", handler.Make(h.IndexHandler))
+	r.HandleFunc("GET /index.css", handler.Make(h.CSSHandler))
+	r.HandleFunc("GET /favicon.ico", handler.Make(h.FaviconHandler))
+
+	r.HandleFunc("GET /api/audio_files", handler.Make(h.AudioFileListHandler))
+	r.HandleFunc("POST /api/audio_files/{audioFileID}/play", handler.Make(h.AudioPlayHandler))
+	r.HandleFunc("POST /api/audio/pause", handler.Make(h.AudioPauseHandler))
+	r.HandleFunc("POST /api/audio/volume", handler.Make(h.AudioVolumeHandler))
+	r.HandleFunc("POST /api/audio/stop", handler.Make(h.AudioStopHandler))
+
+	r.HandleFunc("/", handler.Make(h.NotFoundHandler))
+
+	stack := middleware.CreateStack(
+		middleware.Log,
+		middleware.CORS,
+	)
+
+	server := http.Server{
+		Addr:    ":8080",
+		Handler: stack(r),
+	}
+
+	fmt.Println("Server listening on port 8080...")
+	if err := server.ListenAndServe(); err != nil {
+		fmt.Println("Error starting server:", err)
 	}
 }

@@ -1,0 +1,43 @@
+html {
+	background-color: #eee;
+	font-size: 14px;
+}
+
+main {
+	padding: 6rem;
+}
+
+ul {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	list-style: none;
+	background-color: white;
+	padding: 2rem;
+	border-radius: 0.25rem;
+}
+
+li {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+}
+
+button {
+	background-color: white;
+	border-radius: 0.25rem;
+	border: 1px solid #444;
+	cursor: pointer;
+}
+
+button:hover {
+	background-color: #ddd;
+}
+
+.audio-file-id {
+	width: 260px;
+}
+
+li button {
+	margin-left: auto;
+}
