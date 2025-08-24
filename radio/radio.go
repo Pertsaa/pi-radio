@@ -121,7 +121,8 @@ func (r *Radio) SetVolume(volume float64) {
 	}
 
 	speaker.Lock()
-	r.VolumeCtrl.Volume += volume
+	r.VolumeCtrl.Volume = volume
+	r.Volume = volume
 	speaker.Unlock()
 }
 
